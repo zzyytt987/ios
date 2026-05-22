@@ -1,0 +1,9 @@
+Downloading https://npmmirror.com/mirrors/gradle/gradle-8.10.2-bin.zip
+
+Exception in thread "main" java.io.FileNotFoundException: https://cdn.npmmirror.com/binaries/gradle/gradle-8.10.2-bin.zip
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.getInputStream0(HttpURLConnection.java:2048)
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.getInputStream(HttpURLConnection.java:1641)
+	at java.base/sun.net.www.protocol.https.HttpsURLConnectionImpl.getInputStream(HttpsURLConnectionImpl.java:224)
+	at org.gradle.wrapper.Install.forceFetch(SourceFile:2)
+	at org.gradle.wrapper.Install$1.call(SourceFile:8)
+	at org.gradle.wrapper.GradleWrapperMain.main(SourceFile:67)

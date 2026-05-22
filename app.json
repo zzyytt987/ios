@@ -21,6 +21,12 @@
     },
     "plugins": [
       "expo-secure-store"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "79b75194-adca-4c77-829c-4b3fa6abf712"
+      }
+    },
+    "owner": "zyt060217"
   }
 }
