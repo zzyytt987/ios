@@ -1,0 +1,26 @@
+{
+  "expo": {
+    "name": "企业移动办公",
+    "slug": "enterprise-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "backgroundColor": "#6366f1"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.enterprise.mobile"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#6366f1"
+      },
+      "package": "com.enterprise.mobile"
+    },
+    "plugins": [
+      "expo-secure-store"
+    ]
+  }
+}
