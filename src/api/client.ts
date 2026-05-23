@@ -1,9 +1,8 @@
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
+import { API_BASE } from "../config";
 
 const TOKEN_KEY = "auth_token";
-
-const API_BASE = "http://10.0.2.2:8000"; // Android emulator -> host
 
 const api = axios.create({
   baseURL: API_BASE,
