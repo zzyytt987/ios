@@ -7,6 +7,7 @@ import {
   RefreshControl,
   ActivityIndicator,
   ScrollView,
+  Alert,
 } from "react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -66,7 +67,7 @@ export default function DeviceListScreen() {
       await api.delete(`/api/devices/${confirmId}`);
       setDevices((arr) => arr.filter((d) => d.id !== confirmId));
     } catch {
-      // silent
+      Alert.alert("删除失败", "无法删除该设备，请重试");
     } finally {
       setDeleting(false);
       setConfirmId(null);

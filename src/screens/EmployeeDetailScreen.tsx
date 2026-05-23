@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { View, Text, ScrollView, TouchableOpacity } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, Alert } from "react-native";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { ArrowLeft, Pencil, Check, Trash2, Sun, Moon } from "lucide-react-native";
+import axios from "axios";
 import api from "../api/client";
 import Button from "../components/Button";
 import TextInput from "../components/TextInput";
@@ -50,10 +51,21 @@ export default function EmployeeDetailScreen() {
     }
     setSaving(true);
     try {
-      const res = await api.put<Employee>(`/api/employees/${initial.id}`, form);
+      await api.put<Employee>(`/api/employees/${initial.id}`, form);
       navigation.navigate("MainTabs");
-    } catch {
-      setErrors({ name: "保存失败，请重试" });
+    } catch (err) {
+      let msg = "保存失败，请重试";
+      if (axios.isAxiosError(err)) {
+        if (err.response?.data?.detail) {
+          const detail = err.response.data.detail;
+          msg = Array.isArray(detail)
+            ? detail.map((d: any) => d.msg ?? JSON.stringify(d)).join("\n")
+            : String(detail);
+        } else if (err.message) {
+          msg = err.message;
+        }
+      }
+      Alert.alert("保存失败", msg);
     } finally {
       setSaving(false);
     }
@@ -64,9 +76,12 @@ export default function EmployeeDetailScreen() {
     try {
       await api.delete(`/api/employees/${initial.id}`);
       navigation.navigate("MainTabs");
-    } catch {
+    } catch (err) {
       setDeleting(false);
       setConfirmVisible(false);
+      let msg = "删除失败，请重试";
+      if (axios.isAxiosError(err) && err.message) msg = err.message;
+      Alert.alert("删除失败", msg);
     }
   };
 

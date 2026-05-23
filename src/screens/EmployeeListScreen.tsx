@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   RefreshControl,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -73,7 +74,7 @@ export default function EmployeeListScreen() {
       await api.delete(`/api/employees/${confirmId}`);
       setEmployees((arr) => arr.filter((e) => e.id !== confirmId));
     } catch {
-      // silent
+      Alert.alert("删除失败", "无法删除该员工，请重试");
     } finally {
       setDeleting(false);
       setConfirmId(null);

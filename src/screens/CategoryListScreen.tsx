@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   RefreshControl,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -63,7 +64,7 @@ export default function CategoryListScreen() {
       await api.delete(`/api/categories/${confirmId}`);
       setCategories((arr) => arr.filter((c) => c.id !== confirmId));
     } catch {
-      // silent
+      Alert.alert("删除失败", "无法删除该分类，请重试");
     } finally {
       setDeleting(false);
       setConfirmId(null);

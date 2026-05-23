@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react";
 import { Appearance } from "react-native";
-import api, { saveToken, getToken, removeToken } from "../api/client";
+import api, { saveToken, getToken, removeToken, setAuthErrorHandler } from "../api/client";
 
 interface AuthState {
   isLoggedIn: boolean;
@@ -26,6 +26,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [dark, setDark] = useState(Appearance.getColorScheme() === "dark");
 
   useEffect(() => {
+    setAuthErrorHandler(() => setIsLoggedIn(false));
     getToken().then((t) => {
       if (t) setIsLoggedIn(true);
       setIsLoading(false);

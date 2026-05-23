@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { View, Text, ScrollView, TouchableOpacity } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, Alert } from "react-native";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { ArrowLeft, User, Check, Sun, Moon } from "lucide-react-native";
+import axios from "axios";
 import api from "../api/client";
 import Button from "../components/Button";
 import TextInput from "../components/TextInput";
@@ -65,8 +66,19 @@ export default function EmployeeFormScreen() {
         await api.post("/api/employees", data);
       }
       navigation.goBack();
-    } catch {
-      setErrors({ name: "保存失败，请重试" });
+    } catch (err) {
+      let msg = "保存失败，请重试";
+      if (axios.isAxiosError(err)) {
+        if (err.response?.data?.detail) {
+          const detail = err.response.data.detail;
+          msg = Array.isArray(detail)
+            ? detail.map((d: any) => d.msg ?? JSON.stringify(d)).join("\n")
+            : String(detail);
+        } else if (err.message) {
+          msg = err.message;
+        }
+      }
+      Alert.alert("保存失败", msg);
     } finally {
       setSaving(false);
     }
