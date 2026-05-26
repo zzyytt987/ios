@@ -2,5 +2,15 @@
   "appId": "com.enterprise.mobile",
   "appName": "企业移动办公",
   "webDir": "dist",
-  "bundledWebRuntime": false
+  "bundledWebRuntime": false,
+  "server": {
+    "iosScheme": "capacitor",
+    "allowNavigation": []
+  },
+  "ios": {
+    "contentInset": "automatic",
+    "allowsLinkPreview": false,
+    "scrollEnabled": true,
+    "preferredContentMode": "mobile"
+  }
 }
