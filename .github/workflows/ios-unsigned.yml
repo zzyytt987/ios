@@ -27,8 +27,9 @@ jobs:
 
       - name: Init Capacitor iOS
         run: |
+          npm install --legacy-peer-deps @capacitor/android
           npx cap add ios
-          npx cap sync
+          npx cap sync ios
 
       - name: Build unsigned IPA
         run: |
