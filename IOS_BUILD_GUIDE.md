@@ -15,12 +15,16 @@ Expo 代码 → Web 编译 → Capacitor 包壳 → GitHub Actions macOS 编译 
 | 工具 | 用途 |
 |------|------|
 | Expo SDK 54 | 代码框架 |
-| react-native-web | Web 编译 |
-| @capacitor/core / cli / ios / android | 打包壳 |
+| react-native-web / react-dom | Web 编译 |
+| @capacitor/core / cli / ios / keyboard | 打包壳 + 键盘支持 |
 | @expo/metro-runtime | Web 运行时 |
 
 ```bash
-npm install --legacy-peer-deps react-dom@19.1.0 react-native-web@~0.19.13 @expo/metro-runtime@~4.0.1 @capacitor/core @capacitor/cli @capacitor/ios @capacitor/android
+npm install --legacy-peer-deps \
+  react-dom@19.1.0 \
+  react-native-web@~0.19.13 \
+  @expo/metro-runtime@~4.0.1 \
+  @capacitor/core @capacitor/cli @capacitor/ios @capacitor/android @capacitor/keyboard
 ```
 
 ---
@@ -34,9 +38,19 @@ npm install --legacy-peer-deps react-dom@19.1.0 react-native-web@~0.19.13 @expo/
   "appId": "com.enterprise.mobile",
   "appName": "企业移动办公",
   "webDir": "dist",
-  "bundledWebRuntime": false
+  "bundledWebRuntime": false,
+  "server": {
+    "iosScheme": "capacitor"
+  },
+  "ios": {
+    "contentInset": "automatic",
+    "scrollEnabled": true,
+    "preferredContentMode": "mobile"
+  }
 }
 ```
+
+> `contentInset: automatic` 键盘弹出时内容自动上移，否则输入框被键盘挡住。
 
 ### GitHub Actions Workflow
 
@@ -70,6 +84,10 @@ jobs:
       - name: Build web
         run: npx expo export --platform web
 
+      - name: Fix CSS for Capacitor
+        run: |
+          sed -i '' 's/overflow: hidden;/overflow: auto;/g' dist/index.html
+
       - name: Init Capacitor iOS
         run: |
           npx cap add ios
@@ -78,16 +96,29 @@ jobs:
       - name: Build unsigned IPA
         run: |
           cd ios/App
-          xcodebuild \
-            -workspace App.xcworkspace \
-            -scheme App \
-            -configuration Release \
-            -sdk iphoneos \
-            -archivePath ./build/App.xcarchive \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY="" \
-            archive
+          if [ -f App.xcworkspace ]; then
+            xcodebuild \
+              -workspace App.xcworkspace \
+              -scheme App \
+              -configuration Release \
+              -sdk iphoneos \
+              -archivePath ./build/App.xcarchive \
+              CODE_SIGNING_ALLOWED=NO \
+              CODE_SIGNING_REQUIRED=NO \
+              CODE_SIGN_IDENTITY="" \
+              archive
+          else
+            xcodebuild \
+              -project App.xcodeproj \
+              -scheme App \
+              -configuration Release \
+              -sdk iphoneos \
+              -archivePath ./build/App.xcarchive \
+              CODE_SIGNING_ALLOWED=NO \
+              CODE_SIGNING_REQUIRED=NO \
+              CODE_SIGN_IDENTITY="" \
+              archive
+          fi
           cd ../..
 
       - name: Package as IPA
@@ -104,8 +135,6 @@ jobs:
           path: enterprise-mobile-web-unsigned.ipa
 ```
 
-> **关键点：** `CODE_SIGNING_ALLOWED=NO` 跳过签名，否则没证书编译不过。
-
 ---
 
 ## 三、触发构建
@@ -114,15 +143,16 @@ jobs:
 
 1. 打开仓库 Actions 页面
 2. 选 **Build iOS Unsigned IPA**
-3. **Run workflow** → **Run workflow**
+3. **Run workflow** → 选 main 分支 → **Run workflow**
 
 ### 方式二：CLI
 
 ```bash
+gh auth login
 gh workflow run "Build iOS Unsigned IPA" --repo zzyytt987/ios --ref main
 ```
 
-构建约 5-8 分钟，完成后在 Actions 页面下载 `enterprise-mobile-web-unsigned.ipa`。
+构建约 5-8 分钟。成功后在那个 run 的 Artifacts 里下载 `enterprise-mobile-web-unsigned.ipa`。
 
 ---
 
@@ -133,57 +163,63 @@ gh workflow run "Build iOS Unsigned IPA" --repo zzyytt987/ios --ref main
 - Windows 电脑
 - 爱思助手（官网下载安装）
 - iPhone + USB 数据线
-- 一个 Apple ID（免费即可）
+- 一个 Apple ID（免费即可，不需要开发者账号）
 
-### 步骤
+### 操作步骤
 
-1. iPhone USB 连电脑，爱思助手识别设备
-2. 工具箱 → **IPA 签名**
-3. 添加 IPA 文件 → 选择下载的 `enterprise-mobile-web-unsigned.ipa`
-4. 勾选 **使用 Apple ID 签名** → 输入你的 Apple ID 和密码
-5. 点 **开始签名** → 等待完成
-6. 签名完成后点 **安装** → App 出现在 iPhone 桌面
-7. iPhone 上：**设置 → 通用 → VPN 与设备管理** → 信任证书
+1. **连接设备** — iPhone USB 连电脑，爱思助手自动识别
+2. **IPA 签名** — 工具箱 → IPA 签名 → 添加下载的 `.ipa`
+3. **Apple ID 签名** — 勾选「使用 Apple ID 签名」→ 输入你的 Apple ID 和密码 → 开始签名
+4. **安装** — 签名完成后点「安装」→ App 出现在 iPhone 桌面
+5. **信任证书** — iPhone 上打开 **设置 → 通用 → VPN 与设备管理** → 点证书 → 信任
 
 ---
 
-## 五、限制与注意事项
+## 五、限制
 
 | 项目 | 说明 |
 |------|------|
 | 签名有效期 | **7 天**，到期需重新签名安装 |
-| 数据 | 每次重装数据丢失，Web 数据不持久 |
-| 设备 | 需要 iPhone/iPad，模拟器不行 |
-| Apple ID | 免费 ID 即可，不需要付费开发者 |
-| 网络 | GitHub 需要科学上网（国内直连不稳定） |
+| 数据持久化 | 重装后数据丢失 |
+| 设备要求 | 需要 iPhone/iPad，不支持模拟器 |
+| 网络 | GitHub 需科学上网（国内直连不稳定） |
 
 ---
 
 ## 六、踩坑记录
 
-1. **GitHub Actions 认证 403** — 可能是 GitHub 故障，等官方恢复
-2. **lucide-react-native 不支持 React 19** — 用 `--legacy-peer-deps` 绕过
-3. **Capacitor 要求 Node ≥ 22** — CI 里用 `node-version: 22`
-4. **Capacitor 默认同步 Android** — 用 `npx cap sync ios` 仅同步 iOS
-5. **App.xcworkspace 不存在** — 新板 Capacitor 用 xcodeproj，需自适应
+| 问题 | 原因 | 解决 |
+|------|------|------|
+| Actions checkout 403 | GitHub 认证服务故障 | 等 GitHub 恢复 |
+| `lucide-react-native` 依赖冲突 | 不支持 React 19 | `npm ci --legacy-peer-deps` |
+| Capacitor 要求 Node ≥ 22 | 默认 Node 20 | `node-version: 22` |
+| `update android - failed` | Capacitor 默认同步两端 | `npx cap sync ios` 指定平台 |
+| `App.xcworkspace does not exist` | Capacitor 版本差异 | if/else 自适应 xcworkspace / xcodeproj |
+| 打开 App 后无法输入 | ① 缺键盘插件 ② body overflow 阻止滚动 | ① 安装 @capacitor/keyboard ② sed 改 overflow 为 auto |
+| macOS BSD sed 报错 | `sed -i` 需 backup 参数 | `sed -i ''` |
+| HTTPS push 超时 | 国内直连 GitHub 不稳 | 用 SSH 推送：`git push git@github.com:...` |
 
 ---
 
 ## 七、常用命令速查
 
 ```bash
-# 本地启动 Expo Web
+# 本地 Web 预览
 npx expo start --web
 
-# 导出 Web 静态文件
+# 导出 Web 静态文件（测试编译是否通过）
 npx expo export --platform web
 
 # 触发 CI 构建
 gh workflow run "Build iOS Unsigned IPA" --repo zzyytt987/ios --ref main
 
+# 查看构建状态
+gh run view <RUN_ID> --repo zzyytt987/ios
+
 # 查看构建日志
 gh run view <RUN_ID> --repo zzyytt987/ios --log
 
-# Git 推送（HTTPS 不通时用 SSH）
-git push git@github.com:zzyytt987/ios.git main
+# SSH 推送（HTTPS 超时备用）
+git remote set-url origin git@github.com:zzyytt987/ios.git
+git push origin main
 ```
