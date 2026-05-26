@@ -1,0 +1,6 @@
+{
+  "appId": "com.enterprise.mobile",
+  "appName": "企业移动办公",
+  "webDir": "dist",
+  "bundledWebRuntime": false
+}
