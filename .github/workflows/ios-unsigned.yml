@@ -25,10 +25,10 @@ jobs:
       - name: Build web
         run: npx expo export --platform web
 
-      - name: Fix CSS for Capacitor
+      - name: Fix for Capacitor
         run: |
           sed -i '' 's/overflow: hidden;/overflow: auto;/g' dist/index.html
-          sed -i '' 's|</head>|<style>input,textarea,select,[contenteditable]{-webkit-user-select:text !important;user-select:text !important;pointer-events:auto !important}body,#root{-webkit-user-select:auto}</style></head>|' dist/index.html
+          sed -i '' 's|</head>|<script>document.addEventListener("DOMContentLoaded",function(){var s=document.createElement("style");s.textContent="input,textarea,select,[contenteditable]{-webkit-user-select:text!important;pointer-events:auto!important}div[data-focusable]{-webkit-user-select:auto!important}";document.head.appendChild(s);setInterval(function(){document.querySelectorAll("input,textarea").forEach(function(e){e.style.pointerEvents="auto";e.style.webkitUserSelect="text";e.parentElement&&(e.parentElement.style.pointerEvents="auto")})},500)})</script></head>|' dist/index.html
 
       - name: Init Capacitor iOS
         run: |
