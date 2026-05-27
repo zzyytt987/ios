@@ -28,6 +28,7 @@ jobs:
       - name: Fix CSS for Capacitor
         run: |
           sed -i '' 's/overflow: hidden;/overflow: auto;/g' dist/index.html
+          sed -i '' 's|</head>|<style>input,textarea,select,[contenteditable]{-webkit-user-select:text !important;user-select:text !important;pointer-events:auto !important}body,#root{-webkit-user-select:auto}</style></head>|' dist/index.html
 
       - name: Init Capacitor iOS
         run: |
